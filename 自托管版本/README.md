@@ -1,105 +1,65 @@
-# n8n + PostgreSQL 自托管部署指南 (通用版)
+# n8n 自托管部署指南
 
-你好！欢迎使用这个 n8n 自托管部署工具。你可以把它想象成一个“万能 DIY 工具箱”，能帮你在任何支持 Docker 的设备上（比如云服务器、家用电脑、NAS 等）搭建起强大的自动化工具 n8n。
+欢迎使用 n8n 自托管部署工具！这个项目提供了三种不同的部署方式，以满足不同场景下的需求。
 
-这套“工具箱”包含两个核心部件：
-1.  **n8n**: 大脑，负责设计和运行各种自动化流程。
-2.  **PostgreSQL**: 仓库，一个可靠的数据库，专门存放 n8n 的所有数据。
+## 三种部署方式对比
 
----
+| 版本 | 适用场景 | 特点 | 额外要求 |
+|------|---------|------|---------|
+| **普通版** | 局域网内使用或有公网IP | 简单直接，易于部署 | 无特殊要求 |
+| **Ngrok隧道版** | 无公网IP但需临时外网访问 | 快速获得外网访问能力 | 需注册ngrok账号并获取令牌 |
+| **Cloudflare隧道版** | 长期稳定的外网访问 | 安全性高，稳定可靠 | 需拥有域名并托管在Cloudflare |
 
-## 🚀 两步完成部署，轻松上手
+## 如何选择适合您的版本
 
-### 第一步：配置“蓝图” (`.env` 文件)
+1. **普通版 (normal)**
+   - 如果您只需要在局域网内使用n8n
+   - 如果您的服务器有固定公网IP
+   - 如果您不需要外网访问功能
 
-`.env` 文件就是我们这个工具箱的“组装蓝图”，里面记录了一些关键信息。你需要根据自己的情况修改它。
+2. **Ngrok隧道版 (ngork)**
+   - 如果您没有公网IP但需要临时的外网访问
+   - 如果您想快速测试n8n的外网访问功能
+   - 如果您不想购买域名或配置DNS
 
-1.  **打开 `.env` 文件。**
-2.  **修改密码：** 找到 `POSTGRES_PASSWORD` 和 `POSTGRES_NON_ROOT_PASSWORD`，把等号后面的默认密码改成你自己的，一定要复杂一些！这相当于给你的“仓库”上两把锁。
-3.  **检查端口：** `N8N_PORT` 默认是 `5678`。这就像你家的门牌号。如果这个数字没被其他程序占用，就不用改。
+3. **Cloudflare隧道版 (cloudflare)**
+   - 如果您需要长期稳定的外网访问
+   - 如果您已经拥有自己的域名并使用Cloudflare管理
+   - 如果您对安全性和稳定性有较高要求
 
-### 第二步：启动！
+## 部署步骤
 
-万事俱备！现在，回到你存放 `docker-compose.yml` 文件的这个目录，运行下面的命令，我们的“工具箱”就会开始自动组装了。
+无论选择哪个版本，基本部署步骤都是相似的：
 
-```bash
-docker-compose up -d
-```
+1. 进入您选择的版本目录（normal、ngork或cloudflare）
+2. 复制`.env.example`为`.env`并根据注释修改相关配置
+3. 运行`docker-compose up -d`启动服务
+4. 按照各版本README.md中的说明访问和使用n8n
 
-看到 `done` 或者没有报错信息，就代表启动成功了！
+## 版本特殊说明
 
----
+### Ngrok隧道版
+使用前需要在[ngrok官网](https://ngrok.com)注册账号并获取授权令牌(NGROK_AUTHTOKEN)。免费账号可能有使用限制，付费账号可以使用自定义域名功能。
 
-## 🎉 如何访问你的 n8n
+### Cloudflare隧道版
+使用前需要：
+1. 拥有自己的域名并将DNS托管在Cloudflare
+2. 在Cloudflare创建隧道并获取隧道令牌
+3. 将令牌替换到docker-compose.yml文件中的YOUR_CLOUDFLARE_TUNNEL_TOKEN位置
 
-在浏览器地址栏输入：`http://你的设备IP地址:5678` (如果你修改了端口，请使用你自己的端口号)。
+## 常见问题
 
-> **小提示：** 如何查找你的设备 IP 地址？
-> *   **Windows**: 打开命令提示符，输入 `ipconfig`。
-> *   **Mac**: 打开终端，输入 `ifconfig`。
-> *   **Linux / 云服务器**: 打开终端，输入 `ip addr`。
+1. **如何备份我的n8n数据？**
+   - 每个版本的README.md中都有详细的备份与恢复说明
 
-第一次登录 n8n，它会引导你设置一个管理员账号和密码，请一定记好。
+2. **如何更新n8n版本？**
+   - 运行`docker-compose pull`拉取最新镜像
+   - 然后运行`docker-compose up -d`重新启动服务
 
----
+3. **如何查看日志？**
+   - 运行`docker logs n8n-app`查看n8n应用日志
+   - 运行`docker logs n8n-postgres`查看数据库日志
 
-## 📂 如何让 n8n 读写你电脑上的文件？ (可选)
-
-默认情况下，n8n 产生的文件都存储在 Docker 的“隔离区”里，我们不容易直接访问。如果你希望 n8n 能直接读取或保存文件到你电脑的某个文件夹，可以这样做：
-
-1.  **在你电脑上创建一个文件夹**，比如在 D 盘创建一个叫 `n8n_files` 的文件夹。
-2.  **打开 `docker-compose.yml` 文件。**
-3.  找到第 48 行左右的 `- /path/to/your/local/files:/data`。
-4.  **去掉它前面的 `#` 号**，并把 `/path/to/your/local/files` 换成你刚刚创建的文件夹的**绝对路径**。
-
-    *   **Windows 示例:** `- D:/n8n_files:/data`
-    *   **Mac / Linux 示例:** `- /Users/yourname/n8n_files:/data`
-
-5.  保存文件，然后重新启动服务：`docker-compose up -d`。
-
----
-
-## ⚙️ 日常维护 (进阶)
-
-### 更新版本
-
-想给 n8n 升级到最新版？很简单，只需两步：
-
-```bash
-# 1. 拉取最新的“零件”
-docker-compose pull
-
-# 2. 重新组装
-docker-compose up -d
-```
-
-### 查看日志
-
-如果遇到问题，可以查看日志来“诊断”：
-
-```bash
-# 查看 n8n 应用的日志
-docker logs n8n-app
-
-# 查看数据库的日志
-docker logs n8n-postgres
-```
-
-### 备份与恢复
-
-这是一个非常高级的操作，建议在操作前先搜索相关教程。
-
-#### 备份：
-```bash
-# 备份数据库
-docker exec -t n8n-postgres pg_dump -U postgres n8n > n8n_backup.sql
-# 备份 n8n 配置
-docker run --rm -v n8n_data:/source -v $(pwd):/backup alpine tar -czf /backup/n8n_data.tar.gz -C /source .
-```
-
-#### 恢复：
-```bash
-# 恢复数据库
-cat n8n_backup.sql | docker exec -i n8n-postgres psql -U postgres -d n8n
-# 恢复 n8n 配置
-docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /target/* && tar -xzf /backup/n8n_data.tar.gz -C /target"
+4. **如何让n8n访问本地文件？**
+   - 在docker-compose.yml文件中取消注释并修改本地文件夹挂载路径
+   - 详细说明请参考各版本的README.md文件

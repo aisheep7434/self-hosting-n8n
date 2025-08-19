@@ -38,7 +38,7 @@ services:
       - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
       - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
-      #- WEBHOOK_URL=${WEBHOOK_URL}  #注意：仅在使用 Cloudflare 隧道时需要设置此参数
+      - WEBHOOK_URL=${WEBHOOK_URL}  # 外部访问n8n的URL地址
       - GENERIC_TIMEZONE=${TZ}
       - TZ=${TZ}
       - N8N_PORT=${N8N_PORT}
@@ -67,20 +67,19 @@ services:
       retries: 3
       start_period: 60s
 
-  # Cloudflare 隧道配置（可选）
-  # 如果需要使用 Cloudflare 隧道，请取消下面的注释并设置您的 token
-  #cloudflare-tunnel:
-  # image: cloudflare/cloudflared:latest
-  # container_name: cloudflare_tunnel
-  # restart: unless-stopped
-  # command:
-  #   - tunnel
-  #   - --no-autoupdate
-  #   - run
-  #   - --token
-  #   - YOUR_CLOUDFLARE_TUNNEL_TOKEN
-  # networks:
-  #   - n8n_network
+  # Cloudflare 隧道服务
+  cloudflare-tunnel:
+   image: cloudflare/cloudflared:latest
+   container_name: cloudflare_tunnel
+   restart: unless-stopped
+   command:
+     - tunnel
+     - --no-autoupdate
+     - run
+     - --token
+     - YOUR_CLOUDFLARE_TUNNEL_TOKEN  # 替换为您的Cloudflare隧道令牌
+   networks:
+     - n8n_network
 
 networks:
   n8n_network:
@@ -92,4 +91,3 @@ volumes:
     #external: true
   n8n_data:
     #external: true
-
