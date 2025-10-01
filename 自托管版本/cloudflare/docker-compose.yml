@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:16
+    container_name: n8n-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_NON_ROOT_USER=${POSTGRES_NON_ROOT_USER}
+      - POSTGRES_NON_ROOT_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+      - TZ=${TZ}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - n8n_network
+
+  # n8n应用
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n-app
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+      - GENERIC_TIMEZONE=${TZ}
+      - TZ=${TZ}
+      - N8N_PORT=${N8N_PORT}
+      - NODE_ENV=production
+      - WEBHOOK_URL=${WEBHOOK_URL}  # 外部访问n8n的URL地址
+    ports:
+      - "${N8N_PORT}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      # 下面这行是可选的，如果需要挂载本地文件夹，请取消注释并修改路径
+      # - /path/to/your/local/files:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - n8n_network
+
+  # Cloudflare 隧道服务
+  cloudflare-tunnel:
+   image: cloudflare/cloudflared:latest
+   container_name: cloudflare_tunnel
+   restart: unless-stopped
+   command:
+     - tunnel
+     - --no-autoupdate
+     - run
+     - --token
+     - YOUR_CLOUDFLARE_TUNNEL_TOKEN  # 替换为您的Cloudflare隧道令牌
+   networks:
+     - n8n_network
+
+networks:
+  n8n_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    #external: true # 如需使用外部已存在的卷，取消此注释
+  n8n_data:
+    #external: true # 如需使用外部已存在的卷，取消此注释
