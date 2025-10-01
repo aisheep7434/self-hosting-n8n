@@ -1,6 +1,13 @@
 # n8n 本地部署指南
 
-欢迎使用 n8n 本地部署工具！这个项目提供了三种不同的部署方式，以满足不同场景下的需求。
+欢迎使用 n8n 本地部署工具！本项目基于 [n8n 官方 Docker 部署方案](https://docs.n8n.io/hosting/installation/docker/)，在官方标准部署基础上，增加了内网穿透功能，让您能够轻松实现外网访问能力。
+
+## 🎯 项目特色
+
+- **官方标准部署** - 采用 n8n 官方推荐的 Docker Compose 部署方式
+- **PostgreSQL 数据库** - 使用高性能 PostgreSQL 存储工作流和凭证数据
+- **内网穿透支持** - 提供多种外网访问方案，无需公网IP
+- **一键式部署** - 简化配置流程，快速启动服务
 
 ## 🗄️ 数据库说明
 
@@ -12,32 +19,35 @@
 
 PostgreSQL 提供了高性能、可靠性和数据完整性，确保您的工作流和凭证数据安全存储。
 
-## 🎯 选择适合您的版本
+## 🚀 部署方案选择
 
-### 三种版本对比
+### 三种部署方式对比
 
-| 版本 | 适用场景 | 特点 | 额外要求 |
-|------|---------|------|---------|
-| **普通版** | 局域网内使用或有公网IP | 简单直接，易于部署 | 无特殊要求 |
-| **Ngrok隧道版** | 无公网IP但需临时外网访问 | 快速获得外网访问能力 | 需注册ngrok账号并获取令牌 |
-| **Cloudflare隧道版** | 长期稳定的外网访问 | 安全性高，稳定可靠 | 需拥有域名并托管在Cloudflare |
+| 部署方式 | 适用场景 | 特点 | 额外要求 |
+|---------|---------|------|---------|
+| **标准版** | 局域网内使用或有公网IP | 基于官方标准部署，简单直接 | 无特殊要求 |
+| **Ngrok隧道版** | 无公网IP但需临时外网访问 | 集成 Ngrok 内网穿透，快速获得外网访问 | 需注册ngrok账号并获取令牌 |
+| **Cloudflare隧道版** | 长期稳定的外网访问 | 集成 Cloudflare Tunnel，安全稳定 | 需拥有域名并托管在Cloudflare |
 
-### 如何选择
+### 如何选择部署方式
 
-1. **普通版 (normal)** - 适合：
+1. **标准版 (normal)** - 适合：
    - 只需要在局域网内使用n8n
    - 服务器有固定公网IP
    - 不需要外网访问功能
+   - 追求最简单的部署方式
 
 2. **Ngrok隧道版 (ngork)** - 适合：
    - 没有公网IP但需要临时外网访问
    - 快速测试n8n的外网访问功能
    - 不想购买域名或配置DNS
+   - 需要快速分享工作流给外部用户
 
 3. **Cloudflare隧道版 (cloudflare)** - 适合：
    - 需要长期稳定的外网访问
    - 已拥有域名并使用Cloudflare管理
    - 对安全性和稳定性有较高要求
+   - 需要自定义域名访问
 
 ## 📋 部署前准备
 
@@ -53,9 +63,9 @@ PostgreSQL 提供了高性能、可靠性和数据完整性，确保您的工作
 
 ### 2. 进入对应目录
 
-根据您选择的版本，进入对应的目录：
+根据您选择的部署方式，进入对应的目录：
 ```bash
-cd normal        # 普通版
+cd normal        # 标准版
 # 或
 cd ngork         # Ngrok隧道版
 # 或
@@ -66,9 +76,9 @@ cd cloudflare    # Cloudflare隧道版
 
 **三步完成部署：**
 
-### 第一步：选择版本并进入目录
+### 第一步：选择部署方式并进入目录
 ```bash
-cd normal        # 普通版 - 局域网使用
+cd normal        # 标准版 - 局域网使用
 # 或
 cd ngork         # Ngrok版 - 临时外网访问
 # 或
@@ -90,9 +100,9 @@ POSTGRES_NON_ROOT_PASSWORD=your_n8n_password_here  # n8n专用数据库用户密
 - 所有工作流、凭证和执行数据都存储在此数据库中
 - 数据会持久化保存在 Docker 数据卷中，重启容器不会丢失
 
-**版本特有配置（根据所选版本添加）：**
+**部署方式特有配置（根据所选版本添加）：**
 
-**普通版** - 无需额外配置
+**标准版** - 无需额外配置
 
 **Ngrok版** - 需要先到 [ngrok官网](https://ngrok.com) 注册获取令牌
 ```
@@ -114,9 +124,9 @@ docker-compose up -d
 
 ---
 
-## 🎯 访问你的n8n
+## 🌐 访问你的n8n
 
-### 普通版访问
+### 标准版访问
 浏览器输入：`http://你的设备IP地址:5678`
 
 > **查找IP地址**：Windows用 `ipconfig`，Mac/Linux用 `ifconfig` 或 `ip addr`
@@ -154,15 +164,15 @@ TZ=Asia/Shanghai  # 根据你所在的时区调整
 
 ---
 
-# ⚙️ 日常维护 (所有版本通用)
+# 🛠️ 日常维护 (所有版本通用)
 
 ## 更新版本
 
 ```bash
-# 1. 拉取最新的"零件"
+# 1. 拉取最新的镜像
 docker-compose pull
 
-# 2. 重新组装
+# 2. 重新启动服务
 docker-compose up -d
 ```
 
@@ -175,7 +185,7 @@ docker logs n8n-app
 # 查看 PostgreSQL 数据库的日志
 docker logs n8n-postgres
 
-# 查看额外服务的日志（根据版本）
+# 查看内网穿透服务的日志（根据版本）
 docker logs ngrok_tunnel          # Ngrok版本
 docker logs cloudflare_tunnel     # Cloudflare版本
 ```
@@ -205,17 +215,17 @@ docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /targ
 ## 📁 目录结构
 
 ```
-本地部署/
+self-hosting-n8n/
 ├── README.md                    # 本文件
-├── normal/                      # 普通版（局域网/公网IP）
+├── normal/                      # 标准版（基于官方部署）
 │   ├── docker-compose.yml
 │   ├── .env
 │   └── init-data.sh
-├── ngork/                       # Ngrok隧道版（临时外网访问）
+├── ngork/                       # Ngrok隧道版（官方部署 + Ngrok内网穿透）
 │   ├── docker-compose.yml
 │   ├── .env
 │   └── init-data.sh
-└── cloudflare/                  # Cloudflare隧道版（长期稳定外网访问）
+└── cloudflare/                  # Cloudflare隧道版（官方部署 + Cloudflare内网穿透）
     ├── docker-compose.yml
     ├── .env
     └── init-data.sh
@@ -223,32 +233,50 @@ docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /targ
 
 ---
 
+## 🔗 相关链接
+
+- [n8n 官方网站](https://n8n.io/)
+- [n8n 官方文档](https://docs.n8n.io/)
+- [n8n Docker 部署文档](https://docs.n8n.io/hosting/installation/docker/)
+- [Docker 官方网站](https://www.docker.com/)
+- [Ngrok 官方网站](https://ngrok.com/)
+- [Cloudflare 官方网站](https://www.cloudflare.com/)
+
+---
+
 ## 常见问题
 
-1. **如何备份我的n8n数据？**
-   - 参考上文中的备份与恢复说明
+1. **这个项目与官方部署有什么区别？**
+   - 本项目基于官方推荐的 Docker Compose 部署方式，在此基础上增加了内网穿透功能，让没有公网IP的用户也能实现外网访问。
 
-2. **如何更新n8n版本？**
+2. **如何备份我的n8n数据？**
+   - 参考上文中的备份与恢复说明，主要备份PostgreSQL数据库即可保存所有工作流和凭证。
+
+3. **如何更新n8n版本？**
    - 运行`docker-compose pull`拉取最新镜像
    - 然后运行`docker-compose up -d`重新启动服务
 
-3. **如何查看日志？**
+4. **如何查看日志？**
    - 运行`docker logs n8n-app`查看n8n应用日志
    - 运行`docker logs n8n-postgres`查看PostgreSQL数据库日志
-   - 根据版本运行相应的外网服务日志
+   - 根据版本运行相应的内网穿透服务日志
 
-4. **如何让n8n访问本地文件？**
+5. **如何让n8n访问本地文件？**
    - 在docker-compose.yml文件中取消注释并修改本地文件夹挂载路径
 
-5. **端口被占用怎么办？**
+6. **端口被占用怎么办？**
    - 修改`.env`文件中的`N8N_PORT`为其他未使用的端口号
    - 重新运行`docker-compose up -d`
 
-6. **忘记密码怎么办？**
+7. **忘记密码怎么办？**
    - 停止服务：`docker-compose down`
    - 删除n8n数据卷：`docker volume rm n8n_data`
    - 重新启动：`docker-compose up -d`
    - 重新设置管理员账号
+
+8. **内网穿透不稳定怎么办？**
+   - Ngrok适合临时测试，如需长期稳定使用建议选择Cloudflare隧道版
+   - 检查网络连接和隧道配置是否正确
 
 ---
 
@@ -260,6 +288,7 @@ docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /targ
 2. 检查Docker Desktop是否正常运行
 3. 查看容器日志排查错误
 4. 确认`.env`文件配置正确
-5. 确认选择的版本符合您的需求
+5. 确认选择的部署方式符合您的需求
+6. 参考 [n8n 官方文档](https://docs.n8n.io/) 获取更多信息
 
 祝您使用愉快！🎉
