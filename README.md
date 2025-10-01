@@ -1,231 +1,187 @@
 # n8n 本地部署指南
 
-欢迎使用 n8n 本地部署工具！本项目基于 [n8n 官方 Docker 部署方案](https://docs.n8n.io/hosting/installation/docker/)，在官方标准部署基础上，增加了内网穿透功能，让您能够轻松实现外网访问能力。
+> 🚀 **基于官方 Docker 方案，内置 PostgreSQL 数据库，支持内网穿透的一键式部署工具**
 
-## 🎯 项目特色
+欢迎使用 n8n 本地部署工具！本项目基于 [n8n 官方 Docker 部署方案](https://docs.n8n.io/hosting/installation/docker/)，为您提供一个完整的、开箱即用的自动化工作流平台。
 
-- **官方标准部署** - 采用 n8n 官方推荐的 Docker Compose 部署方式
-- **PostgreSQL 数据库** - 使用高性能 PostgreSQL 存储工作流和凭证数据
-- **内网穿透支持** - 提供多种外网访问方案，无需公网IP
-- **一键式部署** - 简化配置流程，快速启动服务
+## ✨ 核心特性
 
-## 🗄️ 数据库说明
+- 🐳 **官方标准部署** - 采用 n8n 官方推荐的 Docker Compose 部署方式
+- 🗄️ **PostgreSQL 数据库** - 内置高性能数据库，存储所有工作流和凭证数据
+- 🌐 **内网穿透支持** - 提供多种外网访问方案，无需公网IP
+- ⚡ **一键式部署** - 简化配置流程，5分钟快速启动服务
 
-本项目使用 **PostgreSQL 数据库**作为 n8n 的后端数据存储系统，用于存储：
-- **工作流数据** - 所有创建的自动化工作流
-- **凭证信息** - 连接第三方服务的认证信息
-- **用户数据** - 用户账户和权限设置
-- **执行历史** - 工作流执行记录和日志
+## 📊 三种部署方案快速选择
 
-PostgreSQL 提供了高性能、可靠性和数据完整性，确保您的工作流和凭证数据安全存储。
+| 方案 | 适用人群 | 访问方式 | 配置难度 | 稳定性 |
+|------|----------|----------|----------|---------|
+| **标准版** | 局域网使用 | `http://内网IP:5678` | ⭐ | 🟢 稳定 |
+| **Ngrok版** | 临时外网访问 | `https://xxx.ngrok.io` | ⭐⭐ | 🟡 一般 |
+| **Cloudflare版** | 长期外网访问 | `https://你的域名` | ⭐⭐⭐ | 🟢 很稳定 |
 
-## 🚀 部署方案选择
+### 🎯 如何选择？
 
-### 三种部署方式对比
+- **只是自己用** → 选择 **标准版**
+- **需要临时分享** → 选择 **Ngrok版**
+- **需要长期外网访问** → 选择 **Cloudflare版**
 
-| 部署方式 | 适用场景 | 特点 | 额外要求 |
-|---------|---------|------|---------|
-| **标准版** | 局域网内使用或有公网IP | 基于官方标准部署，简单直接 | 无特殊要求 |
-| **Ngrok隧道版** | 无公网IP但需临时外网访问 | 集成 Ngrok 内网穿透，快速获得外网访问 | 需注册ngrok账号并获取令牌 |
-| **Cloudflare隧道版** | 长期稳定的外网访问 | 集成 Cloudflare Tunnel，安全稳定 | 需拥有域名并托管在Cloudflare |
+## 🗄️ PostgreSQL 数据库说明
 
-### 如何选择部署方式
+> **所有三种方案都包含完整的 PostgreSQL 数据库，无需额外安装**
 
-1. **标准版 (normal)** - 适合：
-   - 只需要在局域网内使用n8n
-   - 服务器有固定公网IP
-   - 不需要外网访问功能
-   - 追求最简单的部署方式
+您的 n8n 数据将安全存储在 PostgreSQL 数据库中：
 
-2. **Ngrok隧道版 (ngork)** - 适合：
-   - 没有公网IP但需要临时外网访问
-   - 快速测试n8n的外网访问功能
-   - 不想购买域名或配置DNS
-   - 需要快速分享工作流给外部用户
+- 💼 **工作流数据** - 所有创建的自动化工作流
+- 🔐 **凭证信息** - 连接第三方服务的认证信息
+- 👤 **用户数据** - 用户账户和权限设置
+- 📝 **执行历史** - 工作流执行记录和日志
 
-3. **Cloudflare隧道版 (cloudflare)** - 适合：
-   - 需要长期稳定的外网访问
-   - 已拥有域名并使用Cloudflare管理
-   - 对安全性和稳定性有较高要求
-   - 需要自定义域名访问
+**数据库优势：**
+- ✅ 数据持久化存储，容器重启不丢失
+- ✅ 高性能，支持大量工作流
+- ✅ 支持完整备份和恢复
+- ✅ 企业级数据安全
 
-## 📋 部署前准备
+## 🚀 快速部署指南
 
-### 1. 安装Docker Desktop
+> **5分钟完成部署，只需要3个步骤！**
 
-在开始部署之前，请确保你的设备已安装Docker Desktop：
+### 前置要求：安装 Docker
 
-- **Windows用户**: 访问 [Docker官网](https://www.docker.com/products/docker-desktop/) 下载并安装Docker Desktop for Windows
-- **Mac用户**: 访问 [Docker官网](https://www.docker.com/products/docker-desktop/) 下载并安装Docker Desktop for Mac
-- **Linux用户**: 参考官方文档安装Docker Engine和Docker Compose
+请确保您的设备已安装 Docker Desktop：
 
-安装完成后，请启动Docker Desktop并确保它正在运行。
+- **Windows/Mac**: 从 [Docker官网](https://www.docker.com/products/docker-desktop/) 下载安装
+- **Linux**: 安装 Docker Engine 和 Docker Compose
 
-### 2. 进入对应目录
+### 步骤 1️⃣：选择方案并进入目录
 
-根据您选择的部署方式，进入对应的目录：
 ```bash
-cd normal        # 标准版
-# 或
-cd ngork         # Ngrok隧道版
-# 或
-cd cloudflare    # Cloudflare隧道版
-```
-
-## ⚙️ 快速开始
-
-**三步完成部署：**
-
-### 第一步：选择部署方式并进入目录
-```bash
+# 根据您的需求选择一种方案：
 cd normal        # 标准版 - 局域网使用
-# 或
 cd ngork         # Ngrok版 - 临时外网访问
-# 或
 cd cloudflare    # Cloudflare版 - 长期外网访问
 ```
 
-### 第二步：配置环境变量
+### 步骤 2️⃣：配置数据库密码
 
-**打开 `.env` 文件，修改以下必须配置：**
+> **⚠️ 重要：请进入对应目录后，修改该目录下的 `.env` 文件**
 
-**🔒 PostgreSQL数据库配置（所有版本必须修改）**
-```
-POSTGRES_PASSWORD=your_strong_password_here        # PostgreSQL管理员密码
-POSTGRES_NON_ROOT_PASSWORD=your_n8n_password_here  # n8n专用数据库用户密码
-```
+打开对应版本目录下的 `.env` 文件，**必须修改**以下数据库配置：
 
-**📝 数据库说明：**
-- PostgreSQL 将自动创建名为 `n8n` 的数据库
-- 所有工作流、凭证和执行数据都存储在此数据库中
-- 数据会持久化保存在 Docker 数据卷中，重启容器不会丢失
-
-**部署方式特有配置（根据所选版本添加）：**
-
-**标准版** - 无需额外配置
-
-**Ngrok版** - 需要先到 [ngrok官网](https://ngrok.com) 注册获取令牌
-```
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
-NGROK_DOMAIN=your-domain.ngrok-free.app
-WEBHOOK_URL=https://your-domain.ngrok-free.app
+```bash
+# 🔐 PostgreSQL 数据库密码（请设置强密码）
+POSTGRES_PASSWORD=your_strong_password_here        # 管理员密码
+POSTGRES_NON_ROOT_PASSWORD=your_n8n_password_here  # n8n专用密码
 ```
 
-**Cloudflare版** - 需要先到 [Cloudflare Dashboard](https://dash.cloudflare.com/) 创建隧道
-```
-CLOUDFLARE_TUNNEL_TOKEN=your_cloudflare_tunnel_token_here
-WEBHOOK_URL=https://n8n.yourdomain.com
-```
+> **💡 提示**：所有方案都内置 PostgreSQL 数据库，数据会自动持久化保存
 
-### 第三步：启动服务
+**根据所选方案，在对应的 `.env` 文件中额外配置：**
+
+- **标准版** (`normal/.env`) ✅ 无需额外配置
+- **Ngrok版** (`ngork/.env`) 📝 需要配置：
+  ```bash
+  NGROK_AUTHTOKEN=your_ngrok_auth_token_here    # 从 ngrok.com 获取
+  NGROK_DOMAIN=your-domain.ngrok-free.app       # 你的 ngrok 域名
+  WEBHOOK_URL=https://your-domain.ngrok-free.app
+  ```
+- **Cloudflare版** (`cloudflare/.env`) ☁️ 需要配置：
+  ```bash
+  CLOUDFLARE_TUNNEL_TOKEN=your_cloudflare_tunnel_token_here  # 从 Cloudflare 获取
+  WEBHOOK_URL=https://n8n.yourdomain.com                    # 你的域名
+  ```
+
+> **📝 配置文件位置说明：**
+> - 选择 `normal` 版本 → 修改 `normal/.env` 和 `normal/docker-compose.yml`
+> - 选择 `ngork` 版本 → 修改 `ngork/.env` 和 `ngork/docker-compose.yml`
+> - 选择 `cloudflare` 版本 → 修改 `cloudflare/.env` 和 `cloudflare/docker-compose.yml`
+
+### 步骤 3️⃣：启动服务
+
 ```bash
 docker-compose up -d
 ```
 
----
+等待 1-2 分钟，服务启动完成！
 
-## 🌐 访问你的n8n
+## 🌐 访问您的 n8n
 
-### 标准版访问
-浏览器输入：`http://你的设备IP地址:5678`
+| 方案 | 访问地址 | 说明 |
+|------|----------|------|
+| **标准版** | `http://你的IP:5678` | 局域网访问 |
+| **Ngrok版** | 查看日志获取地址 | 运行 `docker logs ngrok_tunnel` |
+| **Cloudflare版** | `https://你的域名` | 直接访问域名 |
 
-> **查找IP地址**：Windows用 `ipconfig`，Mac/Linux用 `ifconfig` 或 `ip addr`
+> **🔍 查看IP地址**：Windows用 `ipconfig`，Mac/Linux用 `ifconfig`
 
-### Ngrok版访问
+## ⚙️ 高级配置（可选）
+
+### 🔧 自定义配置
+
+**修改端口**（如 5678 被占用）：
 ```bash
-docker logs ngrok_tunnel
-```
-从日志中复制显示的外网地址（如：`https://xxxx.ngrok.io`）
-
-### Cloudflare版访问
-浏览器直接访问：`https://n8n.yourdomain.com`
-
----
-
-## ⚙️ 可选配置
-
-### 端口配置
-如果5678端口被占用，在 `.env` 文件中修改：
-```
-N8N_PORT=8080  # 改为其他未使用的端口
+# 在 .env 文件中修改
+N8N_PORT=8080
 ```
 
-### 文件访问配置
-如需n8n访问本地文件，在 `docker-compose.yml` 中取消注释第48行：
+**访问本地文件**：
 ```yaml
-- /path/to/your/files:/data  # 改为你的实际路径
+# 在 docker-compose.yml 中取消注释并修改路径
+- /your/local/path:/data
 ```
 
-### 时区配置
-在 `.env` 文件中修改：
-```
-TZ=Asia/Shanghai  # 根据你所在的时区调整
+**设置时区**：
+```bash
+# 在 .env 文件中修改
+TZ=Asia/Shanghai
 ```
 
 ---
 
-# 🛠️ 日常维护 (所有版本通用)
+## 🛠️ 日常维护
 
-## 更新版本
-
+### 🔄 更新 n8n
 ```bash
-# 1. 拉取最新的镜像
-docker-compose pull
-
-# 2. 重新启动服务
-docker-compose up -d
+docker-compose pull    # 拉取最新镜像
+docker-compose up -d   # 重启服务
 ```
 
-## 查看日志
-
+### 📋 查看日志
 ```bash
-# 查看 n8n 应用的日志
-docker logs n8n-app
-
-# 查看 PostgreSQL 数据库的日志
-docker logs n8n-postgres
-
-# 查看内网穿透服务的日志（根据版本）
-docker logs ngrok_tunnel          # Ngrok版本
-docker logs cloudflare_tunnel     # Cloudflare版本
+docker logs n8n-app           # n8n 应用日志
+docker logs n8n-postgres      # PostgreSQL 数据库日志
+docker logs ngrok_tunnel      # Ngrok 日志（仅 Ngrok 版）
+docker logs cloudflare_tunnel # Cloudflare 日志（仅 Cloudflare 版）
 ```
 
-## 备份与恢复
+### 💾 数据备份与恢复
 
-**备份：**
+**备份 PostgreSQL 数据库**：
 ```bash
-# 备份 PostgreSQL 数据库（包含所有工作流和凭证数据）
 docker exec -t n8n-postgres pg_dump -U postgres n8n > n8n_backup.sql
-
-# 备份 n8n 应用配置文件
-docker run --rm -v n8n_data:/source -v $(pwd):/backup alpine tar -czf /backup/n8n_data.tar.gz -C /source .
 ```
 
-**恢复：**
+**恢复数据库**：
 ```bash
-# 恢复 PostgreSQL 数据库（恢复所有工作流和凭证）
 cat n8n_backup.sql | docker exec -i n8n-postgres psql -U postgres -d n8n
-
-# 恢复 n8n 应用配置文件
-docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /target/* && tar -xzf /backup/n8n_data.tar.gz -C /target"
 ```
 
 ---
 
-## 📁 目录结构
+## 📁 项目结构
 
 ```
 self-hosting-n8n/
-├── README.md                    # 本文件
-├── normal/                      # 标准版（基于官方部署）
+├── README.md                    # 本说明文档
+├── normal/                      # 🏠 标准版 - 局域网使用
 │   ├── docker-compose.yml
 │   ├── .env
 │   └── init-data.sh
-├── ngork/                       # Ngrok隧道版（官方部署 + Ngrok内网穿透）
+├── ngork/                       # 🚀 Ngrok版 - 临时外网访问
 │   ├── docker-compose.yml
 │   ├── .env
 │   └── init-data.sh
-└── cloudflare/                  # Cloudflare隧道版（官方部署 + Cloudflare内网穿透）
+└── cloudflare/                  # ☁️ Cloudflare版 - 长期外网访问
     ├── docker-compose.yml
     ├── .env
     └── init-data.sh
@@ -233,62 +189,89 @@ self-hosting-n8n/
 
 ---
 
+## ❓ 常见问题
+
+<details>
+<summary><strong>🔍 与官方部署有什么区别？</strong></summary>
+
+本项目基于官方 Docker Compose 部署，额外增加了内网穿透功能，让没有公网 IP 的用户也能实现外网访问。所有版本都包含完整的 PostgreSQL 数据库。
+</details>
+
+<details>
+<summary><strong>📁 需要修改哪个配置文件？</strong></summary>
+
+每个版本都有独立的配置文件，请根据选择的版本修改对应目录下的文件：
+
+- **标准版** → 修改 `normal/.env` 文件
+- **Ngrok版** → 修改 `ngork/.env` 文件
+- **Cloudflare版** → 修改 `cloudflare/.env` 文件
+
+**重要**：进入对应目录后再修改配置文件，不要修改其他目录的文件。
+</details>
+
+<details>
+<summary><strong>💾 如何备份我的数据？</strong></summary>
+
+主要备份 PostgreSQL 数据库即可保存所有工作流和凭证：
+```bash
+docker exec -t n8n-postgres pg_dump -U postgres n8n > backup.sql
+```
+</details>
+
+<details>
+<summary><strong>🔄 如何更新版本？</strong></summary>
+
+```bash
+docker-compose pull && docker-compose up -d
+```
+</details>
+
+<details>
+<summary><strong>🌐 端口被占用怎么办？</strong></summary>
+
+修改 `.env` 文件中的 `N8N_PORT` 为其他端口，然后重启服务：
+```bash
+N8N_PORT=8080
+docker-compose up -d
+```
+</details>
+
+<details>
+<summary><strong>🔐 忘记密码怎么办？</strong></summary>
+
+```bash
+docker-compose down              # 停止服务
+docker volume rm n8n_data        # 删除数据卷
+docker-compose up -d             # 重新启动
+```
+然后重新设置管理员账号。
+</details>
+
+<details>
+<summary><strong>🌐 内网穿透不稳定？</strong></summary>
+
+- Ngrok 适合临时测试
+- 长期使用建议选择 Cloudflare 版
+- 检查网络连接和配置是否正确
+</details>
+
+---
+
 ## 🔗 相关链接
 
-- [n8n 官方网站](https://n8n.io/)
-- [n8n 官方文档](https://docs.n8n.io/)
-- [n8n Docker 部署文档](https://docs.n8n.io/hosting/installation/docker/)
-- [Docker 官方网站](https://www.docker.com/)
-- [Ngrok 官方网站](https://ngrok.com/)
-- [Cloudflare 官方网站](https://www.cloudflare.com/)
+- [n8n 官网](https://n8n.io/) | [官方文档](https://docs.n8n.io/) | [Docker 部署指南](https://docs.n8n.io/hosting/installation/docker/)
+- [Docker 官网](https://www.docker.com/) | [Ngrok 官网](https://ngrok.com/) | [Cloudflare 官网](https://www.cloudflare.com/)
 
 ---
 
-## 常见问题
+## 🎉 开始使用
 
-1. **这个项目与官方部署有什么区别？**
-   - 本项目基于官方推荐的 Docker Compose 部署方式，在此基础上增加了内网穿透功能，让没有公网IP的用户也能实现外网访问。
+部署完成后，您就可以开始使用 n8n 创建强大的自动化工作流了！
 
-2. **如何备份我的n8n数据？**
-   - 参考上文中的备份与恢复说明，主要备份PostgreSQL数据库即可保存所有工作流和凭证。
+如果遇到问题，请检查：
+1. ✅ Docker Desktop 是否正常运行
+2. ✅ `.env` 文件配置是否正确
+3. ✅ 查看容器日志排查错误
+4. ✅ 确认选择的部署方式符合需求
 
-3. **如何更新n8n版本？**
-   - 运行`docker-compose pull`拉取最新镜像
-   - 然后运行`docker-compose up -d`重新启动服务
-
-4. **如何查看日志？**
-   - 运行`docker logs n8n-app`查看n8n应用日志
-   - 运行`docker logs n8n-postgres`查看PostgreSQL数据库日志
-   - 根据版本运行相应的内网穿透服务日志
-
-5. **如何让n8n访问本地文件？**
-   - 在docker-compose.yml文件中取消注释并修改本地文件夹挂载路径
-
-6. **端口被占用怎么办？**
-   - 修改`.env`文件中的`N8N_PORT`为其他未使用的端口号
-   - 重新运行`docker-compose up -d`
-
-7. **忘记密码怎么办？**
-   - 停止服务：`docker-compose down`
-   - 删除n8n数据卷：`docker volume rm n8n_data`
-   - 重新启动：`docker-compose up -d`
-   - 重新设置管理员账号
-
-8. **内网穿透不稳定怎么办？**
-   - Ngrok适合临时测试，如需长期稳定使用建议选择Cloudflare隧道版
-   - 检查网络连接和隧道配置是否正确
-
----
-
-## 技术支持
-
-如果您在部署过程中遇到问题，请：
-
-1. 仔细阅读本教程中的每一步
-2. 检查Docker Desktop是否正常运行
-3. 查看容器日志排查错误
-4. 确认`.env`文件配置正确
-5. 确认选择的部署方式符合您的需求
-6. 参考 [n8n 官方文档](https://docs.n8n.io/) 获取更多信息
-
-祝您使用愉快！🎉
+祝您使用愉快！如有问题可参考 [n8n 官方文档](https://docs.n8n.io/)
