@@ -2,6 +2,16 @@
 
 欢迎使用 n8n 本地部署工具！这个项目提供了三种不同的部署方式，以满足不同场景下的需求。
 
+## 🗄️ 数据库说明
+
+本项目使用 **PostgreSQL 数据库**作为 n8n 的后端数据存储系统，用于存储：
+- **工作流数据** - 所有创建的自动化工作流
+- **凭证信息** - 连接第三方服务的认证信息
+- **用户数据** - 用户账户和权限设置
+- **执行历史** - 工作流执行记录和日志
+
+PostgreSQL 提供了高性能、可靠性和数据完整性，确保您的工作流和凭证数据安全存储。
+
 ## 🎯 选择适合您的版本
 
 ### 三种版本对比
@@ -69,11 +79,16 @@ cd cloudflare    # Cloudflare版 - 长期外网访问
 
 **打开 `.env` 文件，修改以下必须配置：**
 
-**🔒 数据库密码（所有版本必须修改）**
+**🔒 PostgreSQL数据库配置（所有版本必须修改）**
 ```
-POSTGRES_PASSWORD=your_strong_password_here
-POSTGRES_NON_ROOT_PASSWORD=your_n8n_password_here
+POSTGRES_PASSWORD=your_strong_password_here        # PostgreSQL管理员密码
+POSTGRES_NON_ROOT_PASSWORD=your_n8n_password_here  # n8n专用数据库用户密码
 ```
+
+**📝 数据库说明：**
+- PostgreSQL 将自动创建名为 `n8n` 的数据库
+- 所有工作流、凭证和执行数据都存储在此数据库中
+- 数据会持久化保存在 Docker 数据卷中，重启容器不会丢失
 
 **版本特有配置（根据所选版本添加）：**
 
@@ -157,7 +172,7 @@ docker-compose up -d
 # 查看 n8n 应用的日志
 docker logs n8n-app
 
-# 查看数据库的日志
+# 查看 PostgreSQL 数据库的日志
 docker logs n8n-postgres
 
 # 查看额外服务的日志（根据版本）
@@ -169,17 +184,19 @@ docker logs cloudflare_tunnel     # Cloudflare版本
 
 **备份：**
 ```bash
-# 备份数据库
+# 备份 PostgreSQL 数据库（包含所有工作流和凭证数据）
 docker exec -t n8n-postgres pg_dump -U postgres n8n > n8n_backup.sql
-# 备份 n8n 配置
+
+# 备份 n8n 应用配置文件
 docker run --rm -v n8n_data:/source -v $(pwd):/backup alpine tar -czf /backup/n8n_data.tar.gz -C /source .
 ```
 
 **恢复：**
 ```bash
-# 恢复数据库
+# 恢复 PostgreSQL 数据库（恢复所有工作流和凭证）
 cat n8n_backup.sql | docker exec -i n8n-postgres psql -U postgres -d n8n
-# 恢复 n8n 配置
+
+# 恢复 n8n 应用配置文件
 docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /target/* && tar -xzf /backup/n8n_data.tar.gz -C /target"
 ```
 
@@ -217,7 +234,7 @@ docker run --rm -v n8n_data:/target -v $(pwd):/backup alpine sh -c "rm -rf /targ
 
 3. **如何查看日志？**
    - 运行`docker logs n8n-app`查看n8n应用日志
-   - 运行`docker logs n8n-postgres`查看数据库日志
+   - 运行`docker logs n8n-postgres`查看PostgreSQL数据库日志
    - 根据版本运行相应的外网服务日志
 
 4. **如何让n8n访问本地文件？**
